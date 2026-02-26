@@ -1,0 +1,49 @@
+'use client';
+
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+
+interface ErrorProps {
+  error: Error & { digest?: string };
+  reset: () => void;
+}
+
+export default function CataloguesError({ error, reset }: ErrorProps) {
+  const searchParams = useSearchParams();
+  const sizeId = searchParams.get('size_id');
+
+  useEffect(() => {
+    console.error('[Catalogues Error]', error);
+  }, [error]);
+
+  return (
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
+      <div className="text-center max-w-md">
+        <span className="text-6xl mb-6 block">⚠️</span>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Failed to load catalogues
+        </h2>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+          {error.message === 'Internal server error'
+            ? 'The backend server is unavailable or the database is not connected.'
+            : error.message}
+        </p>
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={reset}
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors"
+          >
+            Try again
+          </button>
+          <Link
+            href={sizeId ? `/category?size_id=${sizeId}` : '/'}
+            className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-semibold transition-colors"
+          >
+            ← Back to categories
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}

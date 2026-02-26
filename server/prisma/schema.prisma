@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Sizes ────────────────────────────────────────────────────────────────────
+
+model Size {
+  id         String      @id @default(uuid())
+  name       String      @unique
+  catalogues Catalogue[]
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  @@map("sizes")
+}
+
+// ─── Categories ───────────────────────────────────────────────────────────────
+
+model Category {
+  id         String      @id @default(uuid())
+  name       String      @unique
+  catalogues Catalogue[]
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+// ─── Catalogues ───────────────────────────────────────────────────────────────
+
+model Catalogue {
+  id          String    @id @default(uuid())
+  title       String
+  sizeId      String    @map("size_id")
+  categoryId  String    @map("category_id")
+  pdfUrl      String    @map("pdf_url")
+  coverImage  String    @map("cover_image")
+  products    Product[]
+  size        Size      @relation(fields: [sizeId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("catalogues")
+}
+
+// ─── Products ─────────────────────────────────────────────────────────────────
+
+model Product {
+  id          String     @id @default(uuid())
+  catalogueId String     @map("catalogue_id")
+  pageNumber  Int        @map("page_number")
+  productName String     @map("product_name")
+  image       String
+  description String
+  xCoordinate Float      @map("x_coordinate")
+  yCoordinate Float      @map("y_coordinate")
+  catalogue   Catalogue  @relation(fields: [catalogueId], references: [id], onDelete: Cascade)
+  wishlists   Wishlist[]
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  admin
+  user
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String
+  role      Role       @default(user)
+  wishlists Wishlist[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// ─── Wishlist ─────────────────────────────────────────────────────────────────
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  productId String   @map("product_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, productId])
+  @@map("wishlist")
+}
