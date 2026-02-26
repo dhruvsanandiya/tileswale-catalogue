@@ -1,199 +1,200 @@
-<h1 align="center">
-  <br />
-  🪨 Tileswale Catalogue
-  <br />
-</h1>
+<div align="center">
 
-<p align="center">
-  <b>A modern digital tile catalogue with an immersive PDF flipbook viewer</b>
-  <br />
-  <sub>Browse tiles · Filter by size & category · Flip through catalogues like a real book</sub>
-</p>
+# 🪨 Tileswale Catalogue
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" />
-  <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript" />
-  <img src="https://img.shields.io/badge/Express.js-4-404d59?style=for-the-badge&logo=express" />
-  <img src="https://img.shields.io/badge/Prisma-ORM-2d3748?style=for-the-badge&logo=prisma" />
-  <img src="https://img.shields.io/badge/PostgreSQL-DB-336791?style=for-the-badge&logo=postgresql" />
-  <img src="https://img.shields.io/badge/Docker-Compose-2496ed?style=for-the-badge&logo=docker" />
-  <img src="https://img.shields.io/badge/TailwindCSS-3-38bdf8?style=for-the-badge&logo=tailwindcss" />
-</p>
+**A modern digital tile catalogue with an immersive PDF flipbook viewer**
+
+*Browse tiles · Filter by size & category · Flip through catalogues like a real book*
+
+<br />
+
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Express](https://img.shields.io/badge/Express.js-4-404d59?style=flat-square&logo=express)](https://expressjs.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-5-2d3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-DB-336791?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker_Compose-Ready-2496ed?style=flat-square&logo=docker)](https://www.docker.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+
+<br />
+
+[Features](#-features) • [Quick Start](#-quick-start) • [API](#-api-endpoints) • [Roadmap](#-roadmap)
+
+</div>
+
+---
+
+## 📖 Table of Contents
+
+- [About](#-what-is-tileswale-catalogue)
+- [Features](#-features)
+- [Project Structure](#-project-structure)
+- [Tech Stack](#-tech-stack)
+- [Quick Start](#-quick-start)
+- [API Endpoints](#-api-endpoints)
+- [Environment Variables](#-environment-variables)
+- [Roadmap](#-roadmap)
+- [License](#-license)
 
 ---
 
 ## ✨ What is Tileswale Catalogue?
 
-**Tileswale Catalogue** is a full-stack web application that lets tile businesses and customers browse tile catalogues online — just like flipping through a physical booklet, but better. Built as a production-ready **monorepo** with a Next.js 14 frontend and an Express + Prisma backend.
+**Tileswale Catalogue** is a full-stack web application for tile businesses and customers to browse catalogues online. It combines a sleek Next.js 14 frontend with an Express + Prisma backend, delivered as a production-ready monorepo.
+
+| | |
+|---|---|
+| 📖 **Flipbook UX** | Real page-flip animations powered by `pdf.js` + `react-pageflip` |
+| 🗂️ **Smart Filtering** | Filter by tile size and category for quick discovery |
+| ⚡ **Fast** | Lazy-loaded PDF pages and optimised rendering |
+| 🐳 **One-command deploy** | Docker Compose spins up everything — client, server, PostgreSQL |
 
 ---
 
 ## 🚀 Features
 
-| Feature                    | Description                                                     |
-| -------------------------- | --------------------------------------------------------------- |
-| 📖 **PDF Flipbook Viewer** | Real page-flip animation powered by `pdf.js` + `react-pageflip` |
-| 🗂️ **Category Browsing**   | Filter catalogues by tile category                              |
-| 📐 **Size Filtering**      | Browse catalogues by tile size                                  |
-| 📦 **Catalogue Listing**   | Dynamic catalogue pages fetched from the backend                |
-| 🔐 **JWT Auth**            | Role-based authentication (admin / user)                        |
-| ❤️ **Wishlist**            | Users can save their favourite tile products                    |
-| 🐳 **Docker Compose**      | One-command spin-up for both services + PostgreSQL              |
-| ⚡ **Lazy Loading**        | PDFs load page-by-page for fast performance                     |
-| 🖥️ **Fullscreen Mode**     | Immersive fullscreen flipbook experience                        |
+| Feature | Description |
+| :---: | --- |
+| 📖 **PDF Flipbook** | Immersive page-flip animation with `pdf.js` + `react-pageflip` |
+| 🗂️ **Category Browsing** | Filter catalogues by tile category |
+| 📐 **Size Filtering** | Browse by tile size (e.g. 60×60, 30×90) |
+| 📦 **Catalogue Listing** | Dynamic grid fetched from the backend |
+| 🖥️ **Fullscreen Mode** | Immersive fullscreen flipbook experience |
+| ⚡ **Lazy Loading** | PDFs load page-by-page for fast performance |
+| 🔐 **JWT Auth** *(planned)* | Role-based auth (admin / user) |
+| ❤️ **Wishlist** *(planned)* | Save favourite tile products |
+| 🐳 **Docker Compose** | One command to run client + server + PostgreSQL |
 
 ---
 
 ## 🏗️ Project Structure
 
 ```
-tileswale-catalogue/          ← Monorepo root (npm workspaces)
-├── client/                   ← Next.js 14 App Router frontend
+tileswale-catalogue/
+├── client/                    # Next.js 14 App Router
 │   └── src/
 │       ├── app/
-│       │   ├── page.tsx              ← Home / size selection
+│       │   ├── page.tsx           # Home / size selection
 │       │   ├── layout.tsx
-│       │   ├── globals.css
-│       │   ├── error.tsx
-│       │   ├── fonts/
-│       │   ├── category/                 ← Category listing (page, error)
-│       │   ├── catalogues/               ← Catalogue grid (page, error)
-│       │   └── flipbook/[catalogueId]/   ← FlipbookViewer, PdfPageRenderer, ThumbnailPanel
-│       ├── components/                   ← SkeletonCard etc.
-│       ├── lib/api.ts                    ← API client
-│       └── types/                        ← TypeScript types
-├── server/                   ← Express.js + Prisma backend
+│       │   ├── category/          # Category listing
+│       │   ├── catalogues/        # Catalogue grid
+│       │   └── flipbook/[id]/     # PDF flipbook viewer
+│       ├── components/
+│       ├── lib/                   # API client
+│       └── types/
+├── server/                    # Express + Prisma
 │   ├── src/
-│   │   ├── index.ts          ← Server entry point
-│   │   ├── lib/prisma.ts     ← Prisma client
-│   │   └── routes/           ← catalogues, categories, sizes
+│   │   ├── index.ts
+│   │   ├── lib/prisma.ts
+│   │   └── routes/               # catalogues, categories, sizes
 │   └── prisma/
-│       ├── schema.prisma     ← Database schema
-│       ├── migrations/       ← DB migrations
-│       └── seed.js           ← Seed data
-├── docker-compose.yml        ← Orchestrates client + server + postgres
+│       ├── schema.prisma
+│       ├── migrations/
+│       └── seed.js
+├── docker-compose.yml
 └── .gitignore
 ```
 
----
-
-## 🗄️ Database Schema
+### Database Schema
 
 ```
-Size ──────────────── Catalogue ──────────── Product ──── Wishlist
-                           │                                  │
-                       Category                             User
+Size ──────── Catalogue ──────── Product ──── Wishlist
+                     │                            │
+                 Category                       User
 ```
 
-| Model       | Purpose                                              |
-| ----------- | ---------------------------------------------------- |
-| `Size`      | Tile size variants (e.g. 60×60, 30×90)               |
-| `Category`  | Tile categories (e.g. Floor, Wall, Outdoor)          |
-| `Catalogue` | A PDF catalogue linked to a size & category          |
-| `Product`   | Individual tiles inside a catalogue with coordinates |
-| `User`      | Registered users with admin/user roles               |
-| `Wishlist`  | Saved products per user                              |
+| Model | Purpose |
+| --- | --- |
+| `Size` | Tile size variants (60×60, 30×90, etc.) |
+| `Category` | Categories (Floor, Wall, Outdoor) |
+| `Catalogue` | PDF catalogue linked to size & category |
+| `Product` | Tiles inside catalogues with coordinates |
+| `User` | Registered users with roles |
+| `Wishlist` | Saved products per user |
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend — `client/`
+<table>
+<tr>
+<td width="50%">
 
-- **Next.js 14** (App Router, React Server Components)
-- **TypeScript 5**
-- **Tailwind CSS 3**
-- **pdf.js** — PDF rendering
-- **react-pageflip** — Book-style flip animations
+**Frontend** (`client/`)
 
-### Backend — `server/`
+- Next.js 14 (App Router)
+- TypeScript 5
+- Tailwind CSS 3
+- pdf.js · react-pageflip
 
-- **Express.js 4**
-- **TypeScript 5**
-- **Prisma 5** + **PostgreSQL** — ORM & database
-- **bcryptjs** — Password hashing
-- **jsonwebtoken** — JWT authentication
-- **CORS** middleware
+</td>
+<td width="50%">
 
-### DevOps
+**Backend** (`server/`)
 
-- **Docker + Docker Compose** — containerised services
-- **npm Workspaces** — monorepo management
-- **concurrently** — run client & server simultaneously
+- Express.js 4
+- Prisma 5 + PostgreSQL
+- bcryptjs · jsonwebtoken
+- CORS middleware
+
+</td>
+</tr>
+</table>
+
+**DevOps:** Docker Compose · npm Workspaces · concurrently
 
 ---
 
-## ⚙️ Getting Started
+## ⚡ Quick Start
 
-### Prerequisites
-
-- Node.js 18+
-- Docker & Docker Compose (recommended)
-- PostgreSQL (if running locally without Docker)
-
-### 1. Clone the repo
+### Option A — Docker (recommended)
 
 ```bash
 git clone https://github.com/your-username/tileswale-catalogue.git
 cd tileswale-catalogue
-```
-
-### 2. Setup environment variables
-
-```bash
-# Root
-cp .env.example .env
-
-# Client
-cp client/.env.local.example client/.env.local
-
-# Server
-cp server/.env.example server/.env
-# → Set DATABASE_URL, JWT_SECRET inside server/.env
-```
-
-### 3a. Run with Docker (Recommended)
-
-```bash
 docker compose up --build
 ```
 
-> Services will be available at:
->
-> - **Frontend** → http://localhost:3000
-> - **Backend API** → http://localhost:5000
+→ **Frontend:** http://localhost:3000 · **API:** http://localhost:5000
 
-### 3b. Run locally (without Docker)
+### Option B — Local development
 
 ```bash
-# Install all dependencies
+git clone https://github.com/your-username/tileswale-catalogue.git
+cd tileswale-catalogue
 npm install
 
-# Run migrations & seed the database
+# Setup database
 cd server
 npx prisma migrate dev
 node prisma/seed.js
 cd ..
 
-# Start both client and server
+# Run client + server
 npm run dev
 ```
+
+### Prerequisites
+
+- Node.js 18+
+- Docker & Docker Compose *(or PostgreSQL if running locally)*
 
 ---
 
 ## 📡 API Endpoints
 
-| Method | Endpoint                              | Description                            |
-| ------ | ------------------------------------- | -------------------------------------- |
-| `GET`  | `/api/sizes`                          | List all tile sizes                    |
-| `GET`  | `/api/categories?sizeId=`             | Categories filtered by size            |
-| `GET`  | `/api/catalogues?sizeId=&categoryId=` | Catalogues filtered by size & category |
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/api/sizes` | List all tile sizes |
+| `GET` | `/api/categories?sizeId=` | Categories filtered by size |
+| `GET` | `/api/catalogues?sizeId=&categoryId=` | Catalogues filtered by size & category |
 
 ---
 
 ## 📁 Environment Variables
 
-### `server/.env`
+<details>
+<summary><b>server/.env</b></summary>
 
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/tileswale
@@ -201,32 +202,35 @@ JWT_SECRET=your_jwt_secret
 PORT=5000
 ```
 
-### `client/.env.local`
+</details>
+
+<details>
+<summary><b>client/.env.local</b></summary>
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
+</details>
+
 ---
 
 ## 🗺️ Roadmap
 
-- [x] Monorepo setup with Docker Compose
-- [x] Database schema with Prisma
-- [x] REST API — sizes, categories, catalogues
-- [x] Home page with size selection
-- [x] Category browsing page
-- [x] Catalogue listing page
-- [x] PDF Flipbook viewer with page-flip animation
-- [x] Fullscreen & zoom controls
+- [x] Monorepo + Docker Compose
+- [x] Prisma schema & migrations
+- [x] REST API (sizes, categories, catalogues)
+- [x] Home, category, catalogue pages
+- [x] PDF flipbook with page-flip
+- [x] Fullscreen & zoom
 - [x] Lazy-loaded PDF pages
-- [ ] JWT Authentication (login / register)
-- [ ] Wishlist functionality
-- [ ] Product hotspots on flipbook pages
-- [ ] Admin dashboard for catalogue management
+- [ ] JWT authentication
+- [ ] Wishlist
+- [ ] Product hotspots on flipbook
+- [ ] Admin dashboard
 
 ---
 
 ## 📄 License
 
-[MIT](./LICENSE) © 2024 Tileswale
+[MIT](./LICENSE) © 2025 Tileswale
