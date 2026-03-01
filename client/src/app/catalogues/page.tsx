@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: 'Browse tile catalogues',
 };
 
+export const dynamic = 'force-dynamic';
+
 // ─── Data Component (RSC) ─────────────────────────────────────────────────────
 
 async function CatalogueList({

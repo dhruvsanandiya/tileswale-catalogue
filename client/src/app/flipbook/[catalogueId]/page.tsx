@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import { notFound } from 'next/navigation';
 import { getCatalogueById } from '@/lib/api';
 
+export const dynamic = 'force-dynamic';
+
 // Dynamically import the viewer with ssr:false to prevent pdf.js canvas
 // errors during server-side rendering.
-const FlipbookViewer = dynamic(() => import('./FlipbookViewer'), {
+const FlipbookViewer = nextDynamic(() => import('./FlipbookViewer'), {
   ssr: false,
   loading: () => (
     <div

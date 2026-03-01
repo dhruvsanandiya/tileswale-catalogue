@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: 'Browse tile catalogues by size',
 };
 
+export const dynamic = 'force-dynamic';
+
 // ─── Data Component (RSC) ─────────────────────────────────────────────────────
 
 async function SizeList() {

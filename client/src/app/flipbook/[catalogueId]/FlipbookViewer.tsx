@@ -96,13 +96,9 @@ export default function FlipbookViewer({ catalogue }: Props) {
       try {
         const pdfjsLib = await import('pdfjs-dist');
 
-        // Set worker source — use local copy shipped with pdfjs-dist
+        // Set worker source — use CDN to avoid webpack/Terser minification failures
         if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-          const workerUrl = new URL(
-            'pdfjs-dist/build/pdf.worker.min.mjs',
-            import.meta.url
-          ).toString();
-          pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`;
         }
 
         const loadingTask = pdfjsLib.getDocument({
