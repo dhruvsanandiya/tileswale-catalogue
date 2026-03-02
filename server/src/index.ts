@@ -4,6 +4,7 @@ import cors from 'cors';
 import sizesRouter from './routes/sizes';
 import categoriesRouter from './routes/categories';
 import cataloguesRouter from './routes/catalogues';
+import authRouter from './routes/auth';
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 
+app.use('/api/auth', authRouter);
 app.use('/api/sizes', sizesRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/catalogues', cataloguesRouter);
@@ -45,7 +47,6 @@ app.use('/api/catalogues', cataloguesRouter);
 // TODO: add as built:
 //   app.use('/api/products',  productsRouter);
 //   app.use('/api/wishlist',  wishlistRouter);
-//   app.use('/api/auth',      authRouter);
 
 app.get('/api', (_req: Request, res: Response) => {
   res.json({ message: 'Tileswale Flipbook API is running 🚀' });

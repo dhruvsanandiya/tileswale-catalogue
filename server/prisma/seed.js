@@ -3,51 +3,79 @@ const prisma = new PrismaClient()
 
 async function main() {
 
-  console.log("🌱 Seeding realistic tile data...")
+  console.log("🌱 Seeding realistic multi-company tile data...")
 
-  // 1️⃣ Sizes
+  // 0️⃣ Companies
+  const defaultCompanyId = '00000000-0000-0000-0000-000000000001'
+
+  const company = await prisma.company.upsert({
+    where: { id: defaultCompanyId },
+    update: {},
+    create: {
+      id: defaultCompanyId,
+      name: "Tileswale",
+      logoUrl: "https://dummyimage.com/200x80/111827/f9fafb&text=Tileswale",
+    }
+  })
+
+  console.log(`🏢 Using company: ${company.name}`)
+
+  // 1️⃣ Types - single default type for this company
+  const defaultTypeId = '00000000-0000-0000-0000-000000000002'
+  const defaultType = await prisma.type.upsert({
+    where: { id: defaultTypeId },
+    update: {},
+    create: {
+      id: defaultTypeId,
+      name: "Default Type",
+      companyId: company.id,
+    }
+  })
+
+  // 2️⃣ Sizes
   await prisma.size.createMany({
     skipDuplicates: true,
     data: [
-      { name: "600x600" },
-      { name: "800x800" },
-      { name: "1200x1200" },
-      { name: "600x1200" },
-      { name: "300x600" },
-      { name: "1600x3200" }
+      { name: "600x600",   typeId: defaultType.id },
+      { name: "800x800",   typeId: defaultType.id },
+      { name: "1200x1200", typeId: defaultType.id },
+      { name: "600x1200",  typeId: defaultType.id },
+      { name: "300x600",   typeId: defaultType.id },
+      { name: "1600x3200", typeId: defaultType.id }
     ]
   })
 
   const allSizes = await prisma.size.findMany()
 
-  // 2️⃣ Categories
-  await prisma.category.createMany({
-    skipDuplicates: true,
-    data: [
-      { name: "Marble Look" },
-      { name: "Wood Look" },
-      { name: "Stone Finish" },
-      { name: "Concrete Series" },
-      { name: "High Gloss Premium" },
-      { name: "Outdoor Parking" }
-    ]
-  })
+  // 3️⃣ Categories (fetched/created per catalogue below; ensure existing ones are reused)
+  let categories = await prisma.category.findMany()
 
-  const categories = await prisma.category.findMany()
+  // 4️⃣ Users
+  const bcrypt = require('bcryptjs')
+  const saltRounds = 10
 
-  // 3️⃣ Users
+  const superAdminPasswordHash = await bcrypt.hash("admin123", saltRounds)
+  const normalUserPasswordHash = await bcrypt.hash("user123", saltRounds)
+
   await prisma.user.createMany({
     skipDuplicates: true,
     data: [
       {
         email: "admin@tileswale.com",
-        password: "admin123",
-        role: "admin"
+        password: superAdminPasswordHash,
+        role: "super_admin"
+      },
+      {
+        email: "company-admin@tileswale.com",
+        password: superAdminPasswordHash,
+        role: "company_admin",
+        companyId: company.id
       },
       {
         email: "user@tileswale.com",
-        password: "user123",
-        role: "user"
+        password: normalUserPasswordHash,
+        role: "user",
+        companyId: company.id
       }
     ]
   })
@@ -56,7 +84,7 @@ async function main() {
     where: { role: "user" }
   })
 
-  // 4️⃣ Catalogues
+  // 5️⃣ Catalogues
   const cataloguesData = [
     { title: "Italian Marble Collection 2026", size: "1200x1200", category: "Marble Look" },
     { title: "Royal Wood Series",              size: "600x1200",  category: "Wood Look" },
@@ -68,7 +96,24 @@ async function main() {
   for (const catData of cataloguesData) {
 
     const size     = allSizes.find(s => s.name === catData.size)
-    const category = categories.find(c => c.name === catData.category)
+    let category = categories.find(c => c.name === catData.category)
+
+    // Ensure category is linked to the correct size for the new hierarchy
+    if (!category) {
+      category = await prisma.category.create({
+        data: {
+          name: catData.category,
+          size: { connect: { id: size.id } }
+        }
+      })
+      categories.push(category)
+    } else if (!category.sizeId) {
+      category = await prisma.category.update({
+        where: { id: category.id },
+        data: { size: { connect: { id: size.id } } }
+      })
+      categories = categories.map(c => c.id === category.id ? category : c)
+    }
 
     // Skip if already seeded
     const existing = await prisma.catalogue.findFirst({ where: { title: catData.title } })
@@ -82,6 +127,7 @@ async function main() {
         title:      catData.title,
         sizeId:     size.id,
         categoryId: category.id,
+        companyId:  company.id,
         pdfUrl:     `https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf`,
         coverImage: `https://dummyimage.com/400x600/cccccc/000&text=${catData.title.replace(/\s/g, '+')}`
       }

@@ -1,11 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
+import { requireAuth, getCompanyContext } from '../lib/auth';
 
 const router = Router();
 
 // GET /api/categories?size_id=<uuid>
-// Returns distinct categories that have at least one catalogue for the given size
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+// Returns distinct categories that have at least one catalogue for the given size,
+// scoped to the caller's company (unless super_admin).
+router.get('/', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { size_id } = req.query;
 
@@ -14,11 +16,22 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
-    // Find all categories linked to catalogues with the given sizeId
+    const { companyId, isSuperAdmin } = getCompanyContext(req);
+
+    if (!isSuperAdmin && !companyId) {
+      res.status(403).json({ message: 'Company context required.' });
+      return;
+    }
+
     const categories = await prisma.category.findMany({
       where: {
+        sizeId: size_id,
         catalogues: {
-          some: { sizeId: size_id },
+          some: isSuperAdmin
+            ? {}
+            : {
+                companyId: companyId!,
+              },
         },
       },
       select: { id: true, name: true },

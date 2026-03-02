@@ -10,14 +10,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Companies ─────────────────────────────────────────────────────────────────
+
+model Company {
+  id         String      @id @default(uuid())
+  name       String
+  logoUrl    String?     @map("logo_url")
+  users      User[]
+  types      Type[]
+  catalogues Catalogue[]
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  @@map("companies")
+}
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+model Type {
+  id        String   @id @default(uuid())
+  name      String
+  companyId String   @map("company_id")
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sizes     Size[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([companyId, name])
+  @@map("types")
+}
+
 // ─── Sizes ────────────────────────────────────────────────────────────────────
 
 model Size {
   id         String      @id @default(uuid())
-  name       String      @unique
+  name       String
+  typeId     String      @map("type_id")
+  type       Type        @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  categories Category[]
   catalogues Catalogue[]
   createdAt  DateTime    @default(now()) @map("created_at")
   updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  @@unique([typeId, name])
 
   @@map("sizes")
 }
@@ -26,11 +61,14 @@ model Size {
 
 model Category {
   id         String      @id @default(uuid())
-  name       String      @unique
+  name       String
+  sizeId     String      @map("size_id")
+  size       Size        @relation(fields: [sizeId], references: [id], onDelete: Cascade)
   catalogues Catalogue[]
   createdAt  DateTime    @default(now()) @map("created_at")
   updatedAt  DateTime    @updatedAt @map("updated_at")
 
+  @@unique([sizeId, name])
   @@map("categories")
 }
 
@@ -41,11 +79,13 @@ model Catalogue {
   title       String
   sizeId      String    @map("size_id")
   categoryId  String    @map("category_id")
+  companyId   String    @map("company_id")
   pdfUrl      String    @map("pdf_url")
   coverImage  String    @map("cover_image")
   products    Product[]
   size        Size      @relation(fields: [sizeId], references: [id])
   category    Category  @relation(fields: [categoryId], references: [id])
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
@@ -74,7 +114,8 @@ model Product {
 // ─── Users ────────────────────────────────────────────────────────────────────
 
 enum Role {
-  admin
+  super_admin
+  company_admin
   user
 }
 
@@ -83,6 +124,8 @@ model User {
   email     String     @unique
   password  String
   role      Role       @default(user)
+  companyId String?    @map("company_id")
+  company   Company?   @relation(fields: [companyId], references: [id])
   wishlists Wishlist[]
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
