@@ -17,9 +17,13 @@ import './flipbook.css';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MIN_SCALE = 0.4;
-const MAX_SCALE = 2.5;
-const SCALE_STEP = 0.2;
+/** Fixed scale for PDF rendering – pages are always rendered at this resolution. */
+const PDF_RENDER_SCALE = 1.0;
+/** Zoom level applied to the entire book via CSS transform (like browser zoom). */
+const MIN_ZOOM = 0.4;
+const MAX_ZOOM = 2.5;
+const ZOOM_STEP = 0.2;
+const DEFAULT_ZOOM = 1;
 const LAZY_WINDOW = 1; // pages before/after current to actually render
 
 // ─── FlipPage wrapper (required by react-pageflip) ────────────────────────────
@@ -28,14 +32,13 @@ interface FlipPageProps {
   pdf: PDFDocumentProxy;
   pageNumber: number;
   currentPage: number;
-  scale: number;
   pageW: number;
   pageH: number;
 }
 
 const FlipPage = memo(
   React.forwardRef<HTMLDivElement, FlipPageProps>(function FlipPage(
-    { pdf, pageNumber, currentPage, scale, pageW, pageH },
+    { pdf, pageNumber, currentPage, pageW, pageH },
     ref
   ) {
     const isVisible =
@@ -52,7 +55,7 @@ const FlipPage = memo(
           <PdfPageRenderer
             pdf={pdf}
             pageNumber={pageNumber}
-            scale={scale}
+            scale={PDF_RENDER_SCALE}
             width={pageW}
             height={pageH}
           />
@@ -77,7 +80,7 @@ export default function FlipbookViewer({ catalogue }: Props) {
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [scale, setScale] = useState(0.8);
+  const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
   const [pageW, setPageW] = useState(550);
   const [pageH, setPageH] = useState(780);
   const [showThumbs, setShowThumbs] = useState(false);
@@ -109,9 +112,9 @@ export default function FlipbookViewer({ catalogue }: Props) {
         const doc = await loadingTask.promise;
         if (cancelled) return;
 
-        // Compute page dimensions from first page
+        // Compute page dimensions from first page (fixed render scale)
         const firstPage = await doc.getPage(1);
-        const vp = firstPage.getViewport({ scale });
+        const vp = firstPage.getViewport({ scale: PDF_RENDER_SCALE });
         setPageW(Math.round(vp.width));
         setPageH(Math.round(vp.height));
         setNumPages(doc.numPages);
@@ -133,19 +136,6 @@ export default function FlipbookViewer({ catalogue }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [catalogue.pdfUrl]);
 
-  // ─── Recalculate page size when scale changes ────────────────────────────────
-  useEffect(() => {
-    if (!pdf) return;
-    let cancelled = false;
-    pdf.getPage(1).then((page) => {
-      if (cancelled) return;
-      const vp = page.getViewport({ scale });
-      setPageW(Math.round(vp.width));
-      setPageH(Math.round(vp.height));
-    });
-    return () => { cancelled = true; };
-  }, [pdf, scale]);
-
   // ─── Fullscreen listener ─────────────────────────────────────────────────────
   useEffect(() => {
     const onChange = () =>
@@ -162,14 +152,14 @@ export default function FlipbookViewer({ catalogue }: Props) {
 
   // ─── Toolbar actions ─────────────────────────────────────────────────────────
   const zoomIn = useCallback(
-    () => setScale((s) => Math.min(s + SCALE_STEP, MAX_SCALE)),
+    () => setZoomLevel((z) => Math.min(z + ZOOM_STEP, MAX_ZOOM)),
     []
   );
   const zoomOut = useCallback(
-    () => setScale((s) => Math.max(s - SCALE_STEP, MIN_SCALE)),
+    () => setZoomLevel((z) => Math.max(z - ZOOM_STEP, MIN_ZOOM)),
     []
   );
-  const zoomReset = useCallback(() => setScale(0.8), []);
+  const zoomReset = useCallback(() => setZoomLevel(DEFAULT_ZOOM), []);
 
   const toggleFullscreen = useCallback(async () => {
     try {
@@ -261,7 +251,7 @@ export default function FlipbookViewer({ catalogue }: Props) {
           <button
             className="toolbar-btn"
             onClick={zoomOut}
-            disabled={scale <= MIN_SCALE}
+            disabled={zoomLevel <= MIN_ZOOM}
             title="Zoom out"
             aria-label="Zoom out"
           >
@@ -274,12 +264,12 @@ export default function FlipbookViewer({ catalogue }: Props) {
             aria-label="Reset zoom"
             style={{ fontSize: 11, width: 44 }}
           >
-            {Math.round(scale * 100)}%
+            {Math.round(zoomLevel * 100)}%
           </button>
           <button
             className="toolbar-btn"
             onClick={zoomIn}
-            disabled={scale >= MAX_SCALE}
+            disabled={zoomLevel >= MAX_ZOOM}
             title="Zoom in"
             aria-label="Zoom in"
           >
@@ -349,45 +339,51 @@ export default function FlipbookViewer({ catalogue }: Props) {
           )}
 
           {pdf && !loadError && (
-            // @ts-expect-error – react-pageflip types are loose
-            <HTMLFlipBook
-              ref={bookRef}
-              width={pageW}
-              height={pageH}
-              size="fixed"
-              minWidth={200}
-              maxWidth={1600}
-              minHeight={300}
-              maxHeight={2200}
-              showCover={false}
-              flippingTime={700}
-              usePortrait={false}
-              startPage={0}
-              drawShadow
-              useMouseEvents
-              onFlip={handleFlip}
-              className="html-flipbook"
-              style={{}}
-              startZIndex={0}
-              autoSize={false}
-              clickEventForward
-              swipeDistance={30}
-              showPageCorners
-              disableFlipByClick={false}
-              mobileScrollSupport={false}
+            <div
+              className="flipbook-zoom-wrapper"
+              style={{
+                zoom: zoomLevel,
+              }}
             >
-              {pages.map((n) => (
-                <FlipPage
-                  key={n}
-                  pdf={pdf}
-                  pageNumber={n}
-                  currentPage={currentPage}
-                  scale={scale}
-                  pageW={pageW}
-                  pageH={pageH}
-                />
-              ))}
-            </HTMLFlipBook>
+              {/* @ts-expect-error – react-pageflip types are loose */}
+              <HTMLFlipBook
+                ref={bookRef}
+                width={pageW}
+                height={pageH}
+                size="fixed"
+                minWidth={200}
+                maxWidth={1600}
+                minHeight={300}
+                maxHeight={2200}
+                showCover={false}
+                flippingTime={700}
+                usePortrait={false}
+                startPage={0}
+                drawShadow
+                useMouseEvents
+                onFlip={handleFlip}
+                className="html-flipbook"
+                style={{}}
+                startZIndex={0}
+                autoSize={false}
+                clickEventForward
+                swipeDistance={30}
+                showPageCorners
+                disableFlipByClick={false}
+                mobileScrollSupport={false}
+              >
+                {pages.map((n) => (
+                  <FlipPage
+                    key={n}
+                    pdf={pdf}
+                    pageNumber={n}
+                    currentPage={currentPage}
+                    pageW={pageW}
+                    pageH={pageH}
+                  />
+                ))}
+              </HTMLFlipBook>
+            </div>
           )}
         </div>
       </div>
