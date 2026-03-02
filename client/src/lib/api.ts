@@ -31,6 +31,9 @@ export function getDefaultHeaders(token?: string): HeadersInit {
   return headers;
 }
 
+/** Default timeout for API requests (helps when backend is waking from sleep). */
+const FETCH_TIMEOUT_MS = 60_000;
+
 /**
  * Thin wrapper around fetch with default options.
  */
@@ -39,13 +42,19 @@ export async function apiFetch<T>(
   options: RequestInit = {},
   token?: string
 ): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const signal = options.signal ?? controller.signal;
+
   const res = await fetch(apiUrl(path), {
     ...options,
+    signal,
     headers: {
       ...getDefaultHeaders(token),
       ...options.headers,
     },
   });
+  clearTimeout(timeout);
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: res.statusText }));
