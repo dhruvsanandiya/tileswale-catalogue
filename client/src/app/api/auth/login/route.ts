@@ -3,6 +3,8 @@ import { AUTH_COOKIE_NAME } from '@/lib/auth-cookie';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 const COOKIE_MAX_AGE = 60 * 60 * 24; // 1 day
+/** Keep under Vercel serverless timeout; Render cold start may need a retry */
+const BACKEND_FETCH_TIMEOUT_MS = 8_000;
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,23 +26,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const res = await fetch(`${BACKEND_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: trimmedEmail, password }),
-    });
+    let res: Response;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), BACKEND_FETCH_TIMEOUT_MS);
+      res = await fetch(`${BACKEND_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail, password }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchErr) {
+      const msg =
+        fetchErr instanceof Error && fetchErr.name === 'AbortError'
+          ? 'Login request timed out. Try again (backend may be waking up).'
+          : 'Cannot reach login service. Try again in a moment.';
+      console.error('[auth/login] Backend unreachable:', fetchErr);
+      return NextResponse.json({ message: msg }, { status: 502 });
+    }
 
-    const data = await res.json().catch(() => ({}));
+    const contentType = res.headers.get('content-type') ?? '';
+    const data =
+      contentType.includes('application/json')
+        ? await res.json().catch(() => ({}))
+        : {};
 
     if (!res.ok) {
       return NextResponse.json(
-        { message: data?.message ?? 'Login failed.' },
+        { message: (data as { message?: string })?.message ?? 'Login failed.' },
         { status: res.status }
       );
     }
 
-    const token = data.token as string | undefined;
+    const token = (data as { token?: string }).token;
     if (!token) {
+      console.error('[auth/login] Backend response missing token');
       return NextResponse.json(
         { message: 'Invalid response from server.' },
         { status: 502 }
@@ -48,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     const response = NextResponse.json({
-      user: data.user,
+      user: (data as { user?: unknown }).user,
     });
 
     response.cookies.set(AUTH_COOKIE_NAME, token, {
