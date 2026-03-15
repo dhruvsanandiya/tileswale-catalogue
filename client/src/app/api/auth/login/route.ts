@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic';
 
 const AUTH_COOKIE_NAME = 'auth_token';
 const COOKIE_MAX_AGE = 60 * 60 * 24; // 1 day
-/** Keep under Vercel serverless timeout; Render cold start may need a retry */
-const BACKEND_FETCH_TIMEOUT_MS = 8_000;
+/** Allow Render free-tier cold start (30–60s). Vercel Pro allows 60s; Hobby kills at 10s. */
+const BACKEND_FETCH_TIMEOUT_MS = 55_000;
 
 function getBackendUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
@@ -83,7 +83,7 @@ async function handleLogin(request: NextRequest): Promise<NextResponse> {
   } catch (fetchErr) {
     const msg =
       fetchErr instanceof Error && fetchErr.name === 'AbortError'
-        ? 'Login request timed out. Try again (backend may be waking up).'
+        ? 'Login timed out (backend may be waking up). Please try again in a few seconds.'
         : 'Cannot reach login service. Try again in a moment.';
     console.error('[auth/login] Backend unreachable:', fetchErr);
     return NextResponse.json({ message: msg }, { status: 502 });
