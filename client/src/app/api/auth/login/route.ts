@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AUTH_COOKIE_NAME } from '@/lib/auth-cookie';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+const AUTH_COOKIE_NAME = 'auth_token';
 const COOKIE_MAX_AGE = 60 * 60 * 24; // 1 day
 /** Keep under Vercel serverless timeout; Render cold start may need a retry */
 const BACKEND_FETCH_TIMEOUT_MS = 8_000;
@@ -11,6 +14,20 @@ function getBackendUrl(): string {
 }
 
 export async function POST(request: NextRequest) {
+  try {
+    return await handleLogin(request);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error('[auth/login] Unhandled error:', message, stack);
+    return NextResponse.json(
+      { message: 'An error occurred. Please try again.' },
+      { status: 500 }
+    );
+  }
+}
+
+async function handleLogin(request: NextRequest): Promise<NextResponse> {
   const backendUrl = getBackendUrl();
   const isProduction = process.env.NODE_ENV === 'production';
 
