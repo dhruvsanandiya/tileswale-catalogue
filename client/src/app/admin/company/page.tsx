@@ -42,10 +42,6 @@ export default function CompanyAdminPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [types, setTypes] = useState<Type[]>([]);
-  const [sizes, setSizes] = useState<Size[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -530,9 +526,6 @@ function SizesCard({
   typeName,
   onBack,
   loadSizes,
-  loadCategories,
-  loadCatalogues,
-  loadProducts,
   onSelectSize,
   setError,
 }: {
@@ -692,13 +685,10 @@ function SizesCard({
 }
 
 function CategoriesCard({
-  companyId,
   sizeId,
   sizeName,
   onBack,
   loadCategories,
-  loadCatalogues,
-  loadProducts,
   onSelectCategory,
   setError,
 }: {
@@ -862,7 +852,6 @@ function CataloguesCard({
   categoryName,
   onBack,
   loadCatalogues,
-  loadProducts,
   onSelectCatalogue,
   setError,
 }: {

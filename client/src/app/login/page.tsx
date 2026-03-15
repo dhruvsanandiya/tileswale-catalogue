@@ -56,7 +56,7 @@ export default function LoginPage() {
 
       router.replace('/');
       router.refresh();
-    } catch (err) {
+    } catch {
       setErrors({
         form: 'Something went wrong. Please try again.',
       });

@@ -359,6 +359,7 @@ export default function SuperAdminPage() {
                 <>
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {c.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- dynamic upload URL
                       <img
                         src={resolveUploadUrl(c.logoUrl)}
                         alt=""
