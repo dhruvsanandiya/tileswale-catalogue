@@ -11,6 +11,7 @@ import React, {
 import HTMLFlipBook from 'react-pageflip';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { Catalogue } from '@/types';
+import { resolveUploadUrl } from '@/lib/api';
 import PdfPageRenderer from './PdfPageRenderer';
 import ThumbnailPanel from './ThumbnailPanel';
 import './flipbook.css';
@@ -90,6 +91,31 @@ export default function FlipbookViewer({ catalogue }: Props) {
 
   const rootRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<{ pageFlip: () => { flipNext: () => void; flipPrev: () => void; turnToPage: (n: number) => void; getCurrentPageIndex: () => number } }>(null);
+  const flipStageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = flipStageRef.current;
+    if (!el) return;
+
+    const original = el.addEventListener.bind(el);
+    (el as EventTarget & { addEventListener: typeof el.addEventListener }).addEventListener = function (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ) {
+      if (type === 'touchstart' || type === 'touchmove') {
+        const patched: AddEventListenerOptions =
+          typeof options === 'object' ? { ...options, passive: true } : { passive: true };
+        return original(type, listener, patched);
+      }
+      return original(type, listener, options);
+    };
+
+    return () => {
+      // Restore when the component unmounts
+      el.addEventListener = original;
+    };
+  }, []);
 
   // ─── Load pdf.js worker & document ──────────────────────────────────────────
   useEffect(() => {
@@ -104,8 +130,9 @@ export default function FlipbookViewer({ catalogue }: Props) {
           pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`;
         }
 
+        const pdfUrl = resolveUploadUrl(catalogue.pdfUrl);
         const loadingTask = pdfjsLib.getDocument({
-          url: catalogue.pdfUrl,
+          url: pdfUrl,
           withCredentials: false,
         });
 
@@ -318,7 +345,7 @@ export default function FlipbookViewer({ catalogue }: Props) {
         )}
 
         {/* Flip stage */}
-        <div className="flipbook-stage">
+        <div className="flipbook-stage" ref={flipStageRef}>
           {isLoading && (
             <div className="flipbook-loading">
               <div className="loading-spinner" />

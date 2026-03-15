@@ -1,10 +1,15 @@
 import 'dotenv/config';
+import path from 'path';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import companiesRouter from './routes/companies';
+import typesRouter from './routes/types';
 import sizesRouter from './routes/sizes';
 import categoriesRouter from './routes/categories';
 import cataloguesRouter from './routes/catalogues';
+import productsRouter from './routes/products';
 import authRouter from './routes/auth';
+import adminUsersRouter from './routes/admin-users';
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
@@ -23,6 +28,9 @@ app.use(
   })
 );
 
+// Static uploads (relative URLs stored in DB point here)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // JSON & URL-encoded body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -40,12 +48,15 @@ app.get('/health', (_req: Request, res: Response) => {
 // ─── API Routes ───────────────────────────────────────────────────────────────
 
 app.use('/api/auth', authRouter);
+app.use('/api/companies', companiesRouter);
+app.use('/api/admin/users', adminUsersRouter);
+app.use('/api/types', typesRouter);
 app.use('/api/sizes', sizesRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/catalogues', cataloguesRouter);
+app.use('/api/products', productsRouter);
 
 // TODO: add as built:
-//   app.use('/api/products',  productsRouter);
 //   app.use('/api/wishlist',  wishlistRouter);
 
 app.get('/api', (_req: Request, res: Response) => {

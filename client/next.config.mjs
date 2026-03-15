@@ -11,6 +11,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'dummy-pdf.com',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/uploads/**',
+      },
     ],
   },
 };

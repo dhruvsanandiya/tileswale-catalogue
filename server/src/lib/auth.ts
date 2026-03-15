@@ -85,6 +85,11 @@ export function requireRole(allowed: Role | Role[]) {
   };
 }
 
+/**
+ * Returns company context for the current user.
+ * - super_admin: access to everything (isSuperAdmin true, companyId ignored for scoping).
+ * - company_admin: only data where company_id matches their companyId (must be set).
+ */
 export function getCompanyContext(req: Request): { companyId: string | null; isSuperAdmin: boolean } {
   const user = req.user;
   if (!user) {

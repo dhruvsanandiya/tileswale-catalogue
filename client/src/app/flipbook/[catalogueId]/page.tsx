@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import nextDynamic from 'next/dynamic';
 import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { getCatalogueById } from '@/lib/api';
+import { AUTH_COOKIE_NAME, getAuthTokenOrRedirect } from '@/lib/auth-cookie';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,9 +47,11 @@ interface PageProps {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
+  const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
+  if (!token) return { title: 'Flipbook – Tileswale' };
   try {
     const { catalogueId } = await params;
-    const catalogue = await getCatalogueById(catalogueId);
+    const catalogue = await getCatalogueById(catalogueId, token);
     return {
       title: `${catalogue.title} – Tileswale Flipbook`,
       description: `View the ${catalogue.title} catalogue`,
@@ -59,10 +63,11 @@ export async function generateMetadata({
 
 export default async function FlipbookPage({ params }: PageProps) {
   const { catalogueId } = await params;
+  const token = await getAuthTokenOrRedirect();
 
   let catalogue;
   try {
-    catalogue = await getCatalogueById(catalogueId);
+    catalogue = await getCatalogueById(catalogueId, token);
   } catch {
     notFound();
   }
