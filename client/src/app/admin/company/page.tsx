@@ -521,7 +521,6 @@ function TypesCard({
 }
 
 function SizesCard({
-  companyId,
   typeId,
   typeName,
   onBack,
